@@ -88,11 +88,19 @@ const Login: FC = () => {
               Login
             </Button>
           )}
+          <div className="mt-4 text-center">
+            <Link
+              to="/forgot-password"
+              className="text-blue-500 hover:underline"
+            >
+              Forgot Password?
+            </Link>
+          </div>
         </div>
         <Separator />
         <p className="mt-2">
           Don't have an account?{" "}
-          <Link to="/signup" className="text-blue-500">
+          <Link to="/signup" className="text-blue-500 hover:underline">
             Signup
           </Link>
         </p>

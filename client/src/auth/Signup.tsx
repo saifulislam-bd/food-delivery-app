@@ -128,7 +128,7 @@ const Signup: FC = () => {
         <Separator />
         <p className="mt-2">
           Already registered?{" "}
-          <Link to="/login" className="text-blue-500">
+          <Link to="/login" className="text-blue-500 hover:underline">
             Login
           </Link>
         </p>
