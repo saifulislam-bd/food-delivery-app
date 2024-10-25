@@ -13,7 +13,7 @@ const initialData = {
   country: "",
   deliveryTime: 0,
   cuisines: [],
-  image: undefined,
+  image: {} as File,
 };
 
 const Restaurant: FC = () => {
@@ -39,6 +39,7 @@ const Restaurant: FC = () => {
       return;
     }
     console.log(input);
+    setInput(initialData);
   };
 
   return (
@@ -134,7 +135,7 @@ const Restaurant: FC = () => {
                   onChange={(e) =>
                     setInput((prev) => ({
                       ...prev,
-                      image: e.target.files?.[0] || undefined,
+                      image: e.target.files?.[0] || prev.image,
                     }))
                   }
                 />

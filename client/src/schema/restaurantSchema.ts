@@ -13,7 +13,7 @@ export const restaurantFormSchema = z.object({
   image: z
     .instanceof(File)
     .optional()
-    .refine((file) => file?.size !== 0, {
+    .refine((file): file is File => file !== null && file?.size !== 0, {
       message: "Restaurant banner image is required",
     }),
 });
