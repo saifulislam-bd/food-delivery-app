@@ -45,7 +45,7 @@ const initialData = {
 
 const AddMenu: FC = () => {
   const [open, setOpen] = useState<boolean>(false);
-  const [selectedMenu, setSelectedMenu] = useState<any>();
+  const [selectedMenu, setSelectedMenu] = useState<menuState>(initialData);
   const [input, setInput] = useState<menuState>(initialData);
   const [editOpen, setEditOpen] = useState<boolean>(false);
   const [errors, setErrors] = useState<Partial<menuState>>({});

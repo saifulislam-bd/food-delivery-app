@@ -22,7 +22,7 @@ import {
 } from "react";
 
 type EditMenuProps = {
-  selectedMenu: any;
+  selectedMenu: menuState;
   editOpen: boolean;
   setEditOpen: Dispatch<SetStateAction<boolean>>;
 };
