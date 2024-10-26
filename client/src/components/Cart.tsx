@@ -36,7 +36,7 @@ const Cart: FC = () => {
             <TableCell>
               <Avatar>
                 <AvatarImage />
-                <AvatarFallback>SI</AvatarFallback>
+                <AvatarFallback>CN</AvatarFallback>
               </Avatar>
             </TableCell>
             <TableCell>Chicken Biryani</TableCell>

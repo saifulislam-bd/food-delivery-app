@@ -88,7 +88,7 @@ const MobileNavbar: FC = () => {
             <span>Cart (0)</span>
           </Link>
           <Link
-            to="/profile"
+            to="/admin/add-menu"
             className="flex items-center gap-4 hover:bg-gray-200 hover:text-gray-900 px-3 py-2 rounded-lg cursor-pointer font-medium"
           >
             <SquareMenu />
