@@ -9,12 +9,12 @@ export interface IUser {
   city: string;
   country: string;
   profilePicture: string;
-  isAdmin: Boolean;
+  isAdmin: boolean;
   lastLogin?: Date;
-  isVerified?: Boolean;
-  resetPasswordToken?: Boolean;
-  resetPasswordExpiresAt?: Date;
-  verificationToken?: String;
+  isVerified?: boolean;
+  resetPasswordToken?: string;
+  resetPasswordTokenExpiresAt?: Date;
+  verificationToken?: string;
   verificationTokenExpiresAt?: Date;
 }
 
@@ -69,8 +69,8 @@ const userSchema = new mongoose.Schema<IUserDocument>(
       type: Boolean,
       default: false,
     },
-    resetPasswordToken: Boolean,
-    resetPasswordExpiresAt: Date,
+    resetPasswordToken: String,
+    resetPasswordTokenExpiresAt: Date,
     verificationToken: String,
     verificationTokenExpiresAt: Date,
   },
