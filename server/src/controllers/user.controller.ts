@@ -2,6 +2,15 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import User from "../models/user.model";
+import cloudinary from "../utils/cloudinary";
+import { generateVerificationCode } from "../utils/generateVerificationCode";
+import { generateToken } from "../utils/generateToken";
+import {
+  sendPasswordResetEmail,
+  sendResetSuccessEmail,
+  sendVerificationEmail,
+  sendWelcomeEmail,
+} from "../mailtrap/email";
 
 export const signup = async (req: Request, res: Response) => {
   try {
@@ -13,30 +22,30 @@ export const signup = async (req: Request, res: Response) => {
         message: "User already exists with this email",
       });
     }
-    const hashesPassword = await bcrypt.hash(password, 10);
-    const verificationToken = "fdgd5fg656f";
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = generateVerificationCode();
     user = await User.create({
       fullName,
       email,
-      password: hashesPassword,
+      password: hashedPassword,
       contact: Number(contact),
       verificationToken,
       verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 + 1000,
     });
-    // jwt token
-    // generateToken(res,user)
+    //! jwt token
+    generateToken(res, user);
 
-    // await sendVerificationEmail(email, verificationToken)
+    await sendVerificationEmail(email, verificationToken);
     const userWithoutPassword = await User.findOne({ email }).select(
       "-password"
     );
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       message: "User created successfully",
       user: userWithoutPassword,
     });
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -60,8 +69,8 @@ export const login = async (req: Request, res: Response) => {
         message: "Invalid credential",
       });
     }
-
-    // generateToken(res, user)
+    //! generate token
+    generateToken(res, user);
 
     user.lastLogin = new Date();
     await user.save();
@@ -101,7 +110,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
     await user.save();
 
     //! send verification email
-    // await sendWelcomeEmail(user.email, user.fullName);
+    await sendWelcomeEmail(user.email, user.fullName);
 
     return res.status(200).json({
       success: true,
@@ -142,7 +151,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
     await user.save();
 
     // !send email
-    //await sendPasswordResetEmail(user.email, `${process.env.FRONTEND_URL}/reset-password/${token}`)
+    await sendPasswordResetEmail(
+      user.email,
+      `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
+    );
     return res.status(200).json({
       success: true,
       message: "Password reset link sent to your email",
@@ -174,7 +186,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     await user.save();
 
     //! sent success reset email
-    // await sendResetSuccessEmail(user.email);
+    await sendResetSuccessEmail(user.email);
 
     return res
       .status(200)
@@ -184,10 +196,48 @@ export const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
-// export const checkAuth = async (req: Request, res: Response) => {
-//   try {
-//     const userId = req.id
-//   } catch (error) {
-//     return res.status(500).json({ message: "Internal server error" });
-//   }
-// }
+export const checkAuth = async (req: Request, res: Response) => {
+  try {
+    const userId = req.id;
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    return res.status(200).json({ success: true, user });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = req.id;
+    const { fullName, email, address, city, country, profilePicture } =
+      req.body;
+
+    // upload image on cloudinary
+    let cloudResponse: any;
+
+    cloudResponse = await cloudinary.uploader.upload(profilePicture);
+    const updatedData = {
+      fullName,
+      email,
+      address,
+      city,
+      country,
+      profilePicture,
+    };
+    const user = await User.findByIdAndUpdate(userId, updatedData, {
+      new: true,
+    }).select("-password");
+
+    return res
+      .status(200)
+      .json({ message: "Profile updated successfully", user });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
