@@ -10,9 +10,12 @@ export const sendVerificationEmail = async (
   email: string,
   verificationToken: string
 ) => {
+  console.log("htmlContent:", htmlContent);
+  console.log("client:", client);
+  console.log("sender:", sender);
   const recipient = [{ email }];
   try {
-    const res = await client.send({
+    await client.send({
       from: sender,
       to: recipient,
       subject: "Verify Your Email",
@@ -29,7 +32,7 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
   const recipient = [{ email }];
   const htmlContent = generateWelcomeEmailHtml(name);
   try {
-    const res = await client.send({
+    await client.send({
       from: sender,
       to: recipient,
       subject: "Welcome to Taste Station",
@@ -51,7 +54,7 @@ export const sendPasswordResetEmail = async (
   const recipient = [{ email }];
   const htmlContent = generatePasswordResetEmailHtml(resetUrl);
   try {
-    const res = await client.send({
+    await client.send({
       from: sender,
       to: recipient,
       subject: "Reset your password",
@@ -67,7 +70,7 @@ export const sendResetSuccessEmail = async (email: string) => {
   const recipient = [{ email }];
   const htmlContent = generateResetSuccessEmailHtml();
   try {
-    const res = await client.send({
+    await client.send({
       from: sender,
       to: recipient,
       subject: "Password reset successfully",

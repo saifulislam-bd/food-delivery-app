@@ -13,12 +13,12 @@ export const isAuthenticated = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const token = req.cookies.token;
 
     if (!token) {
-      return res
+      res
         .status(401)
         .json({ success: false, message: "User not authenticated" });
     }
@@ -29,12 +29,12 @@ export const isAuthenticated = async (
     ) as jwt.JwtPayload;
 
     if (!decoded) {
-      return res.status(401).json({ success: false, message: "Invalid token" });
+      res.status(401).json({ success: false, message: "Invalid token" });
     }
 
     req.id = decoded.userId;
     return next();
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
