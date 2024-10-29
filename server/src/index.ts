@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import { dbConnection } from "./config/dbConnection";
 import userRoute from "./routes/user.route";
+import restaurantRoute from "./routes/restaurant.route";
 dotenv.config();
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Routes
 app.use("/api/v1/user", userRoute);
+app.use("/api/v1/user", restaurantRoute);
 
 app.listen(PORT, () => {
   dbConnection();
