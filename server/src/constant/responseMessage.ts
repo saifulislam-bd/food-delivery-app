@@ -1,0 +1,15 @@
+export default {
+  SUCCESS: `The operation has been successful`,
+  SOMETHING_WENT_WRONG: `Something went wrong!`,
+  NOT_FOUND: (entity: string) => `${entity} not found`,
+  ALREADY_EXIST: (entity: string) => `${entity} already exists`,
+  INVALID_CREDENTIALS: `Invalid Credentials`,
+  LOGGED_OUT_SUCCESS: `User logged out successfully`,
+  EMAIL_VERIFIED_SUCCESS: "Email verified successfully",
+  PASSWORD_RESET_SUCCESS: "Password reset successfully",
+  PASSWORD_RESET_EMAIL: `Password reset link sent to your email`,
+  INVALID_OR_EXPIRED_TOKEN: `Invalid or expired reset token`,
+  UPDATE_SUCCESS: (entity: string) => `${entity} was updated successfully`,
+  WELCOME_BACK: (entity: string) => `Welcome back, ${entity}`,
+  REQUIRED: (entity: string) => `${entity} is required`,
+};

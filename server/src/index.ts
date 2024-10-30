@@ -1,4 +1,4 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -6,6 +6,9 @@ import bodyParser from "body-parser";
 import { dbConnection } from "./config/dbConnection";
 import userRoute from "./routes/user.route";
 import restaurantRoute from "./routes/restaurant.route";
+import responseMessage from "./constant/responseMessage";
+import httpError from "./utils/httpError";
+import globalErrorHandler from "./middlewares/globalErrorHandler";
 dotenv.config();
 
 const app = express();
@@ -25,6 +28,18 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // Routes
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/user", restaurantRoute);
+
+// 404 Handler
+app.use((req: Request, _: Response, next: NextFunction) => {
+  try {
+    throw new Error(responseMessage.NOT_FOUND("route"));
+  } catch (err) {
+    httpError(next, err, req, 404);
+  }
+});
+
+// Global Error Handler
+app.use(globalErrorHandler);
 
 app.listen(PORT, () => {
   dbConnection();

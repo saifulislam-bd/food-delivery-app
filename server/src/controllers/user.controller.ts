@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import User from "../models/user.model";
@@ -11,89 +11,100 @@ import {
   sendVerificationEmail,
   sendWelcomeEmail,
 } from "../mailtrap/email";
+import httpError from "../utils/httpError";
+import responseMessage from "../constant/responseMessage";
+import httpResponse from "../utils/httpResponse";
 
-export const signup = async (req: Request, res: Response) => {
+export const signup = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { fullName, email, password, contact } = req.body;
     let user = await User.findOne({ email });
     if (user) {
-      res.status(400).json({
-        success: false,
-        message: "User already exists with this email",
-      });
-    } else {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const verificationToken = generateVerificationCode();
-      user = await User.create({
-        fullName,
-        email,
-        password: hashedPassword,
-        contact: Number(contact),
-        verificationToken,
-        verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 + 1000,
-      });
-      //! jwt token
-      generateToken(res, user);
-
-      await sendVerificationEmail(email, verificationToken);
-      const userWithoutPassword = await User.findOne({ email }).select(
-        "-password"
+      return httpError(
+        next,
+        new Error(responseMessage.ALREADY_EXIST("user")),
+        req,
+        400
       );
-      res.status(201).json({
-        success: true,
-        message: "User created successfully",
-        user: userWithoutPassword,
-      });
     }
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Internal server error" });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = generateVerificationCode();
+    user = await User.create({
+      fullName,
+      email,
+      password: hashedPassword,
+      contact: Number(contact),
+      verificationToken,
+      verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 + 1000,
+    });
+    //! jwt token
+    generateToken(res, user);
+
+    await sendVerificationEmail(email, verificationToken);
+    const userWithoutPassword = await User.findOne({ email }).select(
+      "-password"
+    );
+    httpResponse(req, res, 201, responseMessage.SUCCESS, {
+      data: userWithoutPassword,
+    });
+  } catch (err) {
+    httpError(next, err, req, 500);
   }
 };
 
-export const login = async (req: Request, res: Response): Promise<void> => {
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
     if (!user) {
-      res.status(404).json({
-        success: false,
-        message: "Invalid credential",
-      });
-    } else {
-      const isPasswordMatched = await bcrypt.compare(password, user.password);
-
-      if (!isPasswordMatched) {
-        res.status(404).json({
-          success: false,
-          message: "Invalid credential",
-        });
-      }
-      //! generate token
-      generateToken(res, user);
-
-      user.lastLogin = new Date();
-      await user.save();
-
-      const userWithoutPassword = await User.findOne({ email }).select(
-        "-password"
+      return httpError(
+        next,
+        new Error(responseMessage.NOT_FOUND("user")),
+        req,
+        404
       );
-      res.status(200).json({
-        success: true,
-        message: `Welcome back, ${user.fullName}`,
-        user: userWithoutPassword,
-      });
     }
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    const isPasswordMatched = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatched) {
+      return httpError(
+        next,
+        new Error(responseMessage.INVALID_CREDENTIALS),
+        req,
+        400
+      );
+    }
+    //! generate token
+    generateToken(res, user);
+
+    user.lastLogin = new Date();
+    await user.save();
+
+    const userWithoutPassword = await User.findOne({ email }).select(
+      "-password"
+    );
+    httpResponse(req, res, 200, responseMessage.WELCOME_BACK(user.fullName), {
+      data: userWithoutPassword,
+    });
+  } catch (err) {
+    httpError(next, err, req, 500);
   }
 };
 
 export const verifyEmail = async (
   req: Request,
-  res: Response
-): Promise<void> => {
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { verificationCode } = req.body;
 
@@ -103,51 +114,55 @@ export const verifyEmail = async (
     }).select("-password");
 
     if (!user) {
-      res.status(404).json({
-        success: false,
-        message: "Invalid or expired verification token",
-      });
-    } else {
-      user.isVerified = true;
-      user.verificationToken = undefined;
-      user.verificationTokenExpiresAt = undefined;
-      await user.save();
-
-      //! send verification email
-      await sendWelcomeEmail(user.email, user.fullName);
-
-      res.status(200).json({
-        success: true,
-        message: "Email verified successfully",
-        user,
-      });
+      return httpError(
+        next,
+        new Error(responseMessage.NOT_FOUND("user")),
+        req,
+        404
+      );
     }
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpiresAt = undefined;
+    await user.save();
+
+    //! send verification email
+    await sendWelcomeEmail(user.email, user.fullName);
+    httpResponse(req, res, 200, responseMessage.EMAIL_VERIFIED_SUCCESS, user);
+  } catch (err) {
+    httpError(next, err, req, 500);
   }
 };
 
-export const logout = async (_req: Request, res: Response): Promise<void> => {
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    res
-      .clearCookie("token")
-      .status(200)
-      .json({ success: true, message: "User logged out successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    res.clearCookie("token");
+    httpResponse(req, res, 200, responseMessage.LOGGED_OUT_SUCCESS);
+  } catch (err) {
+    httpError(next, err, req, 500);
   }
 };
 
 export const forgotPassword = async (
   req: Request,
-  res: Response
-): Promise<void> => {
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
 
     if (!user) {
-      res.status(404).json({ success: false, message: "User doesn't exist" });
+      return httpError(
+        next,
+        new Error(responseMessage.NOT_FOUND("user")),
+        req,
+        404
+      );
     } else {
       const resetToken = crypto.randomBytes(32).toString("hex");
       const resetTokenExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1hour
@@ -161,20 +176,18 @@ export const forgotPassword = async (
         user.email,
         `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
       );
-      res.status(200).json({
-        success: true,
-        message: "Password reset link sent to your email",
-      });
+      httpResponse(req, res, 200, responseMessage.PASSWORD_RESET_EMAIL);
     }
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+  } catch (err) {
+    httpError(next, err, req, 500);
   }
 };
 
 export const resetPassword = async (
   req: Request,
-  res: Response
-): Promise<void> => {
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { token } = req.params;
     const { newPassword } = req.body;
@@ -183,48 +196,58 @@ export const resetPassword = async (
       resetPasswordExpiresAt: { $gt: Date.now() },
     });
     if (!user) {
-      res
-        .status(404)
-        .json({ success: false, message: "Invalid or expired reset token" });
-    } else {
-      //update password
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      user.password = hashedPassword;
-      user.resetPasswordToken = undefined;
-      user.resetPasswordTokenExpiresAt = undefined;
-
-      await user.save();
-
-      //! sent success reset email
-      await sendResetSuccessEmail(user.email);
-
-      res
-        .status(200)
-        .json({ success: true, message: "Password was reset successfully" });
+      return httpError(
+        next,
+        new Error(responseMessage.INVALID_OR_EXPIRED_TOKEN),
+        req,
+        404
+      );
     }
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    //update password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordTokenExpiresAt = undefined;
+
+    await user.save();
+
+    //! sent success reset email
+    await sendResetSuccessEmail(user.email);
+
+    httpResponse(req, res, 200, responseMessage.PASSWORD_RESET_SUCCESS);
+  } catch (err) {
+    httpError(next, err, req, 500);
   }
 };
 
-export const checkAuth = async (req: Request, res: Response): Promise<void> => {
+export const checkAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const userId = req.id;
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
-      res.status(404).json({ success: false, message: "User not found" });
+      return httpError(
+        next,
+        new Error(responseMessage.NOT_FOUND("user")),
+        req,
+        404
+      );
     }
-    res.status(200).json({ success: true, user });
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    httpResponse(req, res, 200, responseMessage.SUCCESS, user);
+  } catch (err) {
+    httpError(next, err, req, 500);
   }
 };
 
 export const updateProfile = async (
   req: Request,
-  res: Response
-): Promise<void> => {
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const userId = req.id;
     const { fullName, email, address, city, country, profilePicture } =
@@ -245,8 +268,14 @@ export const updateProfile = async (
       new: true,
     }).select("-password");
 
-    res.status(200).json({ message: "Profile updated successfully", user });
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    httpResponse(
+      req,
+      res,
+      200,
+      responseMessage.UPDATE_SUCCESS("Profile"),
+      user
+    );
+  } catch (err) {
+    httpError(next, err, req, 500);
   }
 };
