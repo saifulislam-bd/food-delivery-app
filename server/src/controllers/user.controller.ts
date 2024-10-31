@@ -163,21 +163,20 @@ export const forgotPassword = async (
         req,
         404
       );
-    } else {
-      const resetToken = crypto.randomBytes(32).toString("hex");
-      const resetTokenExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1hour
-      user.resetPasswordToken = resetToken;
-      user.resetPasswordTokenExpiresAt = resetTokenExpiresAt;
-
-      await user.save();
-
-      // !send email
-      await sendPasswordResetEmail(
-        user.email,
-        `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
-      );
-      httpResponse(req, res, 200, responseMessage.PASSWORD_RESET_EMAIL);
     }
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1hour
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordTokenExpiresAt = resetTokenExpiresAt;
+
+    await user.save();
+
+    // !send email
+    await sendPasswordResetEmail(
+      user.email,
+      `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
+    );
+    httpResponse(req, res, 200, responseMessage.PASSWORD_RESET_EMAIL);
   } catch (err) {
     httpError(next, err, req, 500);
   }
