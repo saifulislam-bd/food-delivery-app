@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import { dbConnection } from "./config/dbConnection";
 import userRoute from "./routes/user.route";
+import menuRoute from "./routes/menu.route";
 import restaurantRoute from "./routes/restaurant.route";
 import responseMessage from "./constant/responseMessage";
 import httpError from "./utils/httpError";
@@ -27,7 +28,8 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Routes
 app.use("/api/v1/user", userRoute);
-app.use("/api/v1/user", restaurantRoute);
+app.use("/api/v1/restaurant", restaurantRoute);
+app.use("/api/v1/menu", menuRoute);
 
 // 404 Handler
 app.use((req: Request, _: Response, next: NextFunction) => {
