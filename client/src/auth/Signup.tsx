@@ -6,6 +6,7 @@ import { Loader2, LockKeyhole, Mail, Phone, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SignupInputState, userSignupSchema } from "@/schema/userSchema";
 import logo from "../assets/logo.svg";
+import { useUserStore } from "@/store/useUserStore";
 
 const initialData = {
   fullName: "",
@@ -17,13 +18,14 @@ const initialData = {
 const Signup: FC = () => {
   const [input, setInput] = useState<SignupInputState>(initialData);
   const [errors, setErrors] = useState<Partial<SignupInputState>>({});
+  const { loading, signup } = useUserStore();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setInput((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSignupSubmit = (e: FormEvent) => {
+  const handleSignupSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // form validation
@@ -33,11 +35,13 @@ const Signup: FC = () => {
       setErrors(fieldErrors as Partial<SignupInputState>);
       return;
     }
-    console.log(input);
+
+    //signup api implementation
+    await signup(input);
+
     setInput(initialData);
   };
 
-  const loading = false;
   return (
     <div className="flex items-center justify-center min-h-screen">
       <form
