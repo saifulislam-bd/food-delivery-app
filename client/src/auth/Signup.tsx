@@ -38,7 +38,6 @@ const Signup: FC = () => {
 
     //signup api implementation
     await signup(input);
-
     setInput(initialData);
   };
 
