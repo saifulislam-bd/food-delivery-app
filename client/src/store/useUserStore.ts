@@ -94,6 +94,35 @@ export const useUserStore = create<UserState>()(
           set({ loading: false });
         }
       },
+      verifyEmail: async (verificationCode: string) => {
+        try {
+          set({ loading: true });
+          const response = await axios.post(
+            `${API_END_POINT}/verify-email`,
+            { verificationCode },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (response.data.success) {
+            toast.success(response.data.message);
+            set({
+              loading: false,
+              user: response.data.user,
+              isAuthenticated: true,
+            });
+          }
+        } catch (error) {
+          if (error instanceof AxiosError && error.response) {
+            toast.error(error.response.data.message);
+          } else {
+            toast.error("An unknown error occurred");
+          }
+          set({ loading: false });
+        }
+      },
     }),
     {
       name: "user-name",
