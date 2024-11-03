@@ -1,58 +1,70 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useUserStore } from "@/store/useUserStore";
 import { Loader2 } from "lucide-react";
-import { FC, useState, useRef, ChangeEvent, KeyboardEvent } from "react";
+import { FormEvent, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const VerifyEmail: FC = () => {
+const VerifyEmail = () => {
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
-  const inputRef = useRef<HTMLInputElement[]>([]);
-
+  const inputRef = useRef<any>([]);
+  const { loading, verifyEmail } = useUserStore();
+  const navigate = useNavigate();
   const handleChange = (index: number, value: string) => {
     if (/^[a-zA-Z0-9]$/.test(value) || value === "") {
       const newOtp = [...otp];
       newOtp[index] = value;
       setOtp(newOtp);
     }
-    // move to the next otp field when  a digit is entered
+    // Move to the next input field id a digit is entered
     if (value !== "" && index < 5) {
       inputRef.current[index + 1].focus();
     }
   };
-  // move to the previous otp field when  a digit is deleted
-  const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
+
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRef.current[index - 1].focus();
     }
   };
-
-  const loading = false;
+  const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const verificationCode = otp.join("");
+    try {
+      await verifyEmail(verificationCode);
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="flex items-center justify-center h-screen w-full">
-      <div className="p-8 rounded-md max-w-md flex flex-col gap-10 border border-gray-200">
+      <div className="p-8 rounded-md w-full max-w-md flex flex-col gap-10 border border-gray-200">
         <div className="text-center">
           <h1 className="font-extrabold text-2xl">Verify your email</h1>
           <p className="text-sm text-gray-600">
-            Enter the six digit code sent to your email
+            Enter the 6 digit code sent to your email address
           </p>
         </div>
-        <form className="">
-          <div className="flex justify-between gap-2">
+        <form onSubmit={submitHandler}>
+          <div className="flex justify-between">
             {otp.map((letter: string, idx: number) => (
               <Input
                 key={idx}
-                ref={(element) =>
-                  (inputRef.current[idx] = element as HTMLInputElement)
-                }
+                ref={(element) => (inputRef.current[idx] = element)}
                 type="text"
                 maxLength={1}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                value={letter}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   handleChange(idx, e.target.value)
                 }
-                onKeyDown={(e: KeyboardEvent<HTMLInputElement>) =>
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                   handleKeyDown(idx, e)
                 }
-                value={letter}
                 className="md:w-12 md:h-12 w-8 h-8 text-center text-sm md:text-2xl font-normal md:font-bold rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             ))}
@@ -60,15 +72,13 @@ const VerifyEmail: FC = () => {
           {loading ? (
             <Button
               disabled
-              className="w-full bg-orange hover:bg-hoverOrange mt-6"
+              className="bg-orange hover:bg-hoverOrange mt-6 w-full"
             >
-              <Loader2 className="h-4 w-4 mr-2  animate-spin" /> Please wait
+              <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+              Please wait
             </Button>
           ) : (
-            <Button
-              type="submit"
-              className="w-full bg-orange hover:bg-hoverOrange mt-6"
-            >
+            <Button className="bg-orange hover:bg-hoverOrange mt-6 w-full">
               Verify
             </Button>
           )}
@@ -77,4 +87,5 @@ const VerifyEmail: FC = () => {
     </div>
   );
 };
+
 export default VerifyEmail;
