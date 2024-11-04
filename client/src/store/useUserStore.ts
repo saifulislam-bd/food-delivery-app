@@ -26,7 +26,7 @@ type UserState = {
   loading: boolean;
   signup: (input: SignupInputState) => Promise<void>;
   login: (input: LoginInputState) => Promise<void>;
-  // verifyEmail: (verificationCode: string) => Promise<void>;
+  verifyEmail: (verificationCode: string) => Promise<void>;
   // checkAuthentication: () => Promise<void>;
   // logout: () => Promise<void>;
   // forgotPassword: (email: string) => Promise<void>;

@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 const VerifyEmail = () => {
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
-  const inputRef = useRef<any>([]);
+  const inputRef = useRef<HTMLInputElement[]>([]);
   const { loading, verifyEmail } = useUserStore();
   const navigate = useNavigate();
   const handleChange = (index: number, value: string) => {
@@ -55,7 +55,7 @@ const VerifyEmail = () => {
             {otp.map((letter: string, idx: number) => (
               <Input
                 key={idx}
-                ref={(element) => (inputRef.current[idx] = element)}
+                ref={(element) => element && (inputRef.current[idx] = element)}
                 type="text"
                 maxLength={1}
                 value={letter}
