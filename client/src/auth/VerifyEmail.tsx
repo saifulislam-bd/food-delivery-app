@@ -55,7 +55,7 @@ const VerifyEmail = () => {
             {otp.map((letter: string, idx: number) => (
               <Input
                 key={idx}
-                ref={(element) => element && (inputRef.current[idx] = element)}
+                ref={(element) => (inputRef.current[idx] = element)}
                 type="text"
                 maxLength={1}
                 value={letter}
