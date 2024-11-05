@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 const VerifyEmail = () => {
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
-  const inputRef = useRef<HTMLInputElement[]>([]);
+  const inputRef = useRef<HTMLInputElement[]>(new Array(6).fill(null));
   const { loading, verifyEmail } = useUserStore();
   const navigate = useNavigate();
   const handleChange = (index: number, value: string) => {
