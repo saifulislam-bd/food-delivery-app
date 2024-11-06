@@ -27,7 +27,7 @@ type UserState = {
   signup: (input: SignupInputState) => Promise<void>;
   login: (input: LoginInputState) => Promise<void>;
   verifyEmail: (verificationCode: string) => Promise<void>;
-  // checkAuthentication: () => Promise<void>;
+  checkAuthentication: () => Promise<void>;
   // logout: () => Promise<void>;
   // forgotPassword: (email: string) => Promise<void>;
   // resetPassword: (token: string, newPassword: string) => Promise<void>;
@@ -112,6 +112,26 @@ export const useUserStore = create<UserState>()(
               loading: false,
               user: response.data.user,
               isAuthenticated: true,
+            });
+          }
+        } catch (error) {
+          if (error instanceof AxiosError && error.response) {
+            toast.error(error.response.data.message);
+          } else {
+            toast.error("An unknown error occurred");
+          }
+          set({ loading: false });
+        }
+      },
+      checkAuthentication: async () => {
+        try {
+          set({ isCheckingAuth: true });
+          const response = await axios.get(`${API_END_POINT}/check-auth`);
+          if (response.data.success) {
+            set({
+              user: response.data.user,
+              isAuthenticated: true,
+              isCheckingAuth: false,
             });
           }
         } catch (error) {
