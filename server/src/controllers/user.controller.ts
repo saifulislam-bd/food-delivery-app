@@ -37,7 +37,7 @@ export const signup = async (
       fullName,
       email,
       password: hashedPassword,
-      contact: Number(contact),
+      contact: "+88" + contact,
       verificationToken,
       verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 + 1000,
     });

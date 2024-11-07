@@ -18,7 +18,7 @@ const VerifyEmail = () => {
     }
     // Move to the next input field id a digit is entered
     if (value !== "" && index < 5) {
-      inputRef.current[index + 1].focus();
+      inputRef.current[index + 1]?.focus();
     }
   };
 
@@ -27,7 +27,7 @@ const VerifyEmail = () => {
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRef.current[index - 1].focus();
+      inputRef.current[index - 1]?.focus();
     }
   };
   const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
@@ -55,7 +55,11 @@ const VerifyEmail = () => {
             {otp.map((letter: string, idx: number) => (
               <Input
                 key={idx}
-                ref={(element) => (inputRef.current[idx] = element)}
+                ref={(element) => {
+                  if (element) {
+                    inputRef.current[idx] = element;
+                  }
+                }}
                 type="text"
                 maxLength={1}
                 value={letter}

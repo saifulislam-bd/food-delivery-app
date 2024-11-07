@@ -40,12 +40,13 @@ export const useUserStore = create<UserState>()(
       loading: false,
       user: null,
       isAuthenticated: false,
-      isCheckingAuth: true,
+      isCheckingAuth: false,
 
       // signup API implementation
       signup: async (input) => {
         try {
           set({ loading: true });
+
           const response = await axios.post(`${API_END_POINT}/signup`, input, {
             headers: {
               "Content-Type": "application/json",

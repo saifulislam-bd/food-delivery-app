@@ -1,4 +1,4 @@
-import { ChangeEvent, FC, FormEvent, useState } from "react";
+import { FC, ChangeEvent, FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -19,7 +19,7 @@ const Signup: FC = () => {
   const [input, setInput] = useState<SignupInputState>(initialData);
   const [errors, setErrors] = useState<Partial<SignupInputState>>({});
   const { loading, signup } = useUserStore();
-
+  console.log(loading);
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setInput((prev) => ({ ...prev, [name]: value }));
