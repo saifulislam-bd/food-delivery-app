@@ -28,8 +28,8 @@ type UserState = {
   login: (input: LoginInputState) => Promise<void>;
   verifyEmail: (verificationCode: string) => Promise<void>;
   checkAuthentication: () => Promise<void>;
-  // logout: () => Promise<void>;
-  // forgotPassword: (email: string) => Promise<void>;
+  logout: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
   // resetPassword: (token: string, newPassword: string) => Promise<void>;
   // updateProfile: (input: any) => Promise<void>;
 };
@@ -152,6 +152,26 @@ export const useUserStore = create<UserState>()(
           if (response.data.success) {
             toast.success(response.data.message);
             set({ loading: false, user: null, isAuthenticated: false });
+          }
+        } catch (error) {
+          if (error instanceof AxiosError && error.response) {
+            toast.error(error.response.data.message);
+          } else {
+            toast.error("An unknown error occurred");
+          }
+          set({ loading: false });
+        }
+      },
+      forgotPassword: async (email: string) => {
+        try {
+          set({ loading: true });
+          const response = await axios.post(
+            `${API_END_POINT}/forgot-password`,
+            { email }
+          );
+          if (response.data.success) {
+            toast.success(response.data.message);
+            set({ loading: false });
           }
         } catch (error) {
           if (error instanceof AxiosError && error.response) {
