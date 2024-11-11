@@ -31,7 +31,7 @@ type UserState = {
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
-  // updateProfile: (input: any) => Promise<void>;
+  updateProfile: (input: any) => Promise<void>;
 };
 
 export const useUserStore = create<UserState>()(
@@ -192,6 +192,30 @@ export const useUserStore = create<UserState>()(
           if (response.data.success) {
             toast.success(response.data.message);
             set({ loading: false });
+          }
+        } catch (error) {
+          if (error instanceof AxiosError && error.response) {
+            toast.error(error.response.data.message);
+          } else {
+            toast.error("An unknown error occurred");
+          }
+          set({ loading: false });
+        }
+      },
+      updateProfile: async (input: any) => {
+        try {
+          const response = await axios.put(
+            `${API_END_POINT}/profile/update`,
+            input,
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (response.data.success) {
+            toast.success(response.data.message);
+            set({ user: response.data.user, isAuthenticated: true });
           }
         } catch (error) {
           if (error instanceof AxiosError && error.response) {
